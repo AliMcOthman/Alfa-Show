@@ -1,0 +1,207 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// =========================
+// USER
+// =========================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("USER")
+
+  accounts      Account[]
+  sessions      Session[]
+  reviews       Review[]
+  favorites     Favorite[]
+  reactions     Reaction[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// =========================
+// MOVIE / SERIES
+// =========================
+
+model Movie {
+  id             String   @id @default(cuid())
+  tmdbId         Int?     @unique
+
+  title          String
+  originalTitle  String?
+  overview       String?
+
+  posterPath     String?
+  backdropPath   String?
+
+  releaseDate    DateTime?
+  year           Int?
+  runtime        Int?
+
+  type           String   @default("MOVIE")
+  status         String   @default("PUBLISHED")
+
+  tmdbRating     Float?
+  tmdbVoteCount  Int?
+
+  categories     Category[]
+  reviews        Review[]
+  favorites      Favorite[]
+  reactions      Reaction[]
+  watchLinks     WatchLink[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([title])
+  @@index([type])
+}
+
+// =========================
+// CATEGORY
+// =========================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+
+  movies    Movie[]
+
+  createdAt DateTime @default(now())
+}
+
+// =========================
+// REVIEW
+// =========================
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+
+  userId    String
+  movieId   String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, movieId])
+}
+
+// =========================
+// FAVORITE
+// =========================
+
+model Favorite {
+  id        String   @id @default(cuid())
+
+  userId    String
+  movieId   String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, movieId])
+}
+
+// =========================
+// LIKE / DISLIKE
+// =========================
+
+model Reaction {
+  id        String   @id @default(cuid())
+  type      String   // LIKE or DISLIKE
+
+  userId    String
+  movieId   String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, movieId])
+}
+
+// =========================
+// WATCH LINKS
+// =========================
+
+model WatchLink {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  provider  String?
+
+  movieId   String
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// =========================
+// AUTH.JS ACCOUNT
+// =========================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// =========================
+// AUTH.JS SESSION
+// =========================
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =========================
+// AUTH.JS VERIFICATION
+// =========================
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
