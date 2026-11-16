@@ -1,5 +1,5 @@
-
 import Link from "next/link";
+import SearchInput from "@/components/navbar/SearchInput";
 
 export default function Navbar() {
     return (
@@ -15,33 +15,26 @@ export default function Navbar() {
                 {/* Navigation */}
                 <nav className="hidden items-center gap-7 md:flex">
                     <Link href="/" className="text-blue-400 transition hover:text-blue-300">
-                        Home
+                        Startseite
                     </Link>
 
                     <Link href="/movies" className="text-gray-300 transition hover:text-white">
-                        Movies
+                        Filme
                     </Link>
 
                     <Link href="/series" className="text-gray-300 transition hover:text-white">
-                        TV Series
+                        TV Serien
                     </Link>
 
                     <Link href="/categories" className="text-gray-300 transition hover:text-white">
-                        Categories
+                        Kategorien
                     </Link>
                 </nav>
 
                 {/* Search and Login */}
                 <div className="flex items-center gap-3">
 
-                    <form action="/search" method="GET" className="hidden sm:block">
-                        <input
-                            type="search"
-                            name="q"
-                            placeholder="Search movies..."
-                            className="w-44 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 lg:w-56"
-                        />
-                    </form>
+                    <SearchInput />
 
                     <Link
                         href="/login"
