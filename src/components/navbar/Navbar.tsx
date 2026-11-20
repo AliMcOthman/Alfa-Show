@@ -1,7 +1,16 @@
+
 import Link from "next/link";
 import SearchInput from "@/components/navbar/SearchInput";
+import { auth, signOut } from "@/auth";
 
-export default function Navbar() {
+export default async function Navbar() {
+    const session = await auth();
+
+    async function handleLogout() {
+        "use server";
+        await signOut({ redirectTo: "/" });
+    }
+
     return (
         <header className="sticky top-0 z-50 border-b border-white/10 bg-[#080d1a]/95 backdrop-blur-md">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
@@ -29,20 +38,43 @@ export default function Navbar() {
                     <Link href="/categories" className="text-gray-300 transition hover:text-white">
                         Kategorien
                     </Link>
+                    {session?.user && (
+                        <Link
+                            href="/favorites"
+                            className="text-gray-300 transition hover:text-white"
+                        >
+                            ♥ Meine Favoriten
+                        </Link>
+                    )}
                 </nav>
 
-                {/* Search and Login */}
+                {/* Search and User */}
                 <div className="flex items-center gap-3">
-
                     <SearchInput />
 
-                    <Link
-                        href="/login"
-                        className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
-                    >
-                        Login
-                    </Link>
+                    {session?.user ? (
+                        <>
+                            <span className="hidden text-sm text-gray-300 sm:block">
+                                Hallo, {session.user.name || session.user.email}
+                            </span>
 
+                            <form action={handleLogout}>
+                                <button
+                                    type="submit"
+                                    className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+                                >
+                                    Logout
+                                </button>
+                            </form>
+                        </>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+                        >
+                            Login
+                        </Link>
+                    )}
                 </div>
             </div>
         </header>

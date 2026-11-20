@@ -4,6 +4,29 @@ import {getTrendingMovies, getTrendingTV, type TMDBItem,} from "@/lib/tmdb";
 
 export const runtime = "nodejs";
 
+// TMDB Genre IDs für Filme
+const movieGenreMap: Record<number, string> = {
+    28: "action",
+    12: "adventure",
+    16: "animation",
+    35: "comedy",
+    18: "drama",
+    27: "horror",
+    878: "science-fiction",
+    53: "thriller",
+    10749: "romance",
+    14: "fantasy",
+};
+
+// TMDB Genre IDs für Serien
+const tvGenreMap: Record<number, string> = {
+    10759: "action",
+    16: "animation",
+    35: "comedy",
+    18: "drama",
+    10765: "science-fiction",
+};
+
 function convertDate(date?: string): Date | null {
     if (!date) return null;
 
@@ -14,6 +37,27 @@ function convertDate(date?: string): Date | null {
     }
 
     return parsedDate;
+}
+
+async function getCategories(
+    genreIds: number[],
+    type: "MOVIE" | "SERIES"
+) {
+    const genreMap = type === "MOVIE"
+        ? movieGenreMap
+        : tvGenreMap;
+
+    const slugs = genreIds
+        .map((id) => genreMap[id])
+        .filter((slug) => slug !== undefined);
+
+    return prisma.category.findMany({
+        where: {
+            slug: {
+                in: slugs,
+            },
+        },
+    });
 }
 
 async function importItems(
@@ -34,6 +78,10 @@ async function importItems(
         const title = item.title || item.name;
 
         if (!title) continue;
+        const categories = await getCategories(
+            item.genre_ids,
+            type
+        );
 
         await prisma.movie.upsert({
             where: {
@@ -41,6 +89,11 @@ async function importItems(
             },
 
             update: {
+                categories: {
+                    set: categories.map((category) => ({
+                        id: category.id,
+                    })),
+                },
                 title,
                 originalTitle: item.original_title || item.original_name || null,
                 overview: item.overview || null,
@@ -55,6 +108,11 @@ async function importItems(
 
             create: {
                 tmdbId: item.id,
+                categories: {
+                    connect: categories.map((category) => ({
+                        id: category.id,
+                    })),
+                },
                 title,
                 originalTitle: item.original_title || item.original_name || null,
                 overview: item.overview || null,

@@ -7,7 +7,15 @@ export default async function CategoriesPage() {
         orderBy: {
             name: "asc",
         },
+        include: {
+            _count: {
+                select: {
+                    movies: true,
+                }
+            }
+        }
     });
+
 
     return (
         <main className="min-h-screen bg-[#080d1a] px-6 py-10 text-white md:px-12">
@@ -33,6 +41,9 @@ export default async function CategoriesPage() {
                         <h2 className="text-lg font-semibold">
                             {category.name}
                         </h2>
+                        <p className="mt-2 text-sm text-gray-400">
+                            {category._count.movies} Filme
+                        </p>
                     </Link>
                 ))}
 

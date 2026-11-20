@@ -9,6 +9,7 @@ if (!token) {
 
 export type TMDBItem = {
     id: number;
+    genre_ids: number[];
 
     title?: string;
     name?: string;
@@ -26,6 +27,8 @@ export type TMDBItem = {
 
     vote_average: number;
     vote_count: number;
+
+
 };
 
 

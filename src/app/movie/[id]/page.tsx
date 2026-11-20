@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import {auth} from "@/auth";
+import ReviewSection from "@/components/review/ReviewSection";
+import FavoriteButton from "@/components/movie/FavoriteButton";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -26,6 +29,19 @@ export default async function MovieDetailsPage({ params }: Props) {
     if (!movie) {
         notFound();
     }
+    const session = await auth();
+    console.log("Movie Page Session:", session);
+    console.log("User ID:", session?.user?.id);
+
+    const isFavorite = session?.user?.id
+        ? !!(await prisma.favorite.findUnique({
+            where: {
+                userId_movieId: {
+                    userId:session.user.id,
+                    movieId:movie.id,
+                },
+            },
+        })) : false
 
     return (
         <main className="min-h-screen bg-[#080d1a] text-white">
@@ -188,7 +204,17 @@ export default async function MovieDetailsPage({ params }: Props) {
                     </div>
 
                 </div>
+                <FavoriteButton
+                    movieId={movie.id}
+                    initialIsFavorite={isFavorite}
+                    isLoggedIn={!!session?.user?.id}
+                />
             </section>
+            <ReviewSection
+                movieId={movie.id}
+                isLoggedIn={!!session?.user?.id}
+                currentUserId={session?.user?.id ?? null}
+            />
 
         </main>
     );
